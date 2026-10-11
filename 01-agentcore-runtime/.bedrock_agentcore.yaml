@@ -11,7 +11,7 @@ agents:
     container_runtime: null
     source_path: null
     aws:
-      execution_role: arn:aws:iam::032461747919:role/WanderBotExecutionRole
+      execution_role: arn:aws:iam::032461747919:role/AmazonBedrockAgentCoreSDKRuntime-us-east-1-e67a4970e2
       execution_role_auto_create: false
       account: 032461747919
       region: us-east-1
@@ -30,9 +30,9 @@ agents:
         idle_runtime_session_timeout: null
         max_lifetime: null
     bedrock_agentcore:
-      agent_id: null
-      agent_arn: null
-      agent_session_id: null
+      agent_id: wanderbot-9hsTEkDo7l
+      agent_arn: arn:aws:bedrock-agentcore:us-east-1:032461747919:runtime/wanderbot-9hsTEkDo7l
+      agent_session_id: 5c40e009-d5d8-4148-b26e-23ff177df7a8
     codebuild:
       project_name: null
       execution_role: null

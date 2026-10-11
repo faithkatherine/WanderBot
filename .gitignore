@@ -3,17 +3,26 @@
 .env.local
 .env.*.local
 
-# Python
+# Python (in all subfolders)
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 
-# Virtual environments
+# Virtual environments (in all subfolders)
 venv/
 .venv/
+*/.venv/
 ENV/
+
+# AgentCore deployment config (contains account IDs, ARNs)
+.bedrock_agentcore.yaml
+*/.bedrock_agentcore.yaml
+
+# Archives
+*.zip
 
 # IDE
 .vscode/
