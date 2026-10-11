@@ -21,9 +21,9 @@ from pathlib import Path
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 # TODO (Step 1): Import `tool` from strands (alongside Agent)
-from strands import Agent
+from strands import Agent, tool
 from strands.models import BedrockModel
-# TODO (Step 1): Import `current_time` from strands_tools
+from strands_tools import current_time
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -52,7 +52,8 @@ app = BedrockAgentCoreApp()
 MODEL_ID = "us.amazon.nova-2-lite-v1:0"
 model = BedrockModel(model_id=MODEL_ID)
 
-SYSTEM_PROMPT = """You are WanderBot, the AI travel assistant for Horizon Travel.
+SYSTEM_PROMPT = """You are WanderBot, the AI travel assistant for \
+Horizon Travel.
 
 AVAILABLE TOOLS
 You have the following tools at your disposal:
@@ -63,11 +64,15 @@ You have the following tools at your disposal:
 
 GUIDELINES
 - Always use tools to fetch real data instead of guessing
-- When a customer asks about flights, use search_flights with the correct IATA codes
+- When a customer asks about flights, use search_flights with the \
+correct IATA codes
 - When a customer asks about hotels, use search_hotels with the city name
-- For currency questions, use get_exchange_rate with ISO 4217 currency codes
-- Chain tools together when needed (e.g., find flights AND hotels in the same city)
-- Always indicate the data source in your response (e.g., "According to current availability...")
+- For currency questions, use get_exchange_rate with ISO 4217 \
+currency codes
+- Chain tools together when needed (e.g., find flights AND hotels in \
+the same city)
+- Always indicate the data source in your response (e.g., "According to \
+current availability...")
 - Be concise, structured, and helpful
 
 IATA CODE QUICK REFERENCE
@@ -86,14 +91,25 @@ SYD = Sydney | NRT = Tokyo Narita | DXB = Dubai | CUN = Cancun"""
 # TOOL 2: Custom — search_flights
 # ===========================================================================
 
-# TODO (Step 2): Add the @tool decorator
+
+@tool
 def search_flights(origin: str, destination: str, date: str) -> str:
-    
+
     """
-    TODO (Step 2): Add a docstring describing when to use this tool, the expected parameters, and the return format
+    Search for flights between two locations on a specific date.
+
+    Parameters:
+    - origin (str): The IATA code of the departure airport.
+    - destination (str): The IATA code of the arrival airport.
+    - date (str): The date of travel (YYYY-MM-DD).
+
+    Returns:
+    - str: A formatted string with the flight information or an error message.
     """
-    
-    logger.info("search_flights called: %s → %s on %s", origin, destination, date)
+
+    logger.info(
+        "search_flights called: %s → %s on %s", origin, destination, date
+    )
 
     # Load flight data
     try:
@@ -101,7 +117,10 @@ def search_flights(origin: str, destination: str, date: str) -> str:
             flights = json.load(f)
     except FileNotFoundError:
         logger.error("flights.json not found at %s", FLIGHTS_FILE)
-        return "⚠️  Flight database is temporarily unavailable. Please contact support."
+        return (
+            "⚠️  Flight database is temporarily unavailable. "
+            "Please contact support."
+        )
     except json.JSONDecodeError as e:
         logger.error("Failed to parse flights.json: %s", e)
         return "⚠️  Error reading flight data. Please try again."
@@ -121,14 +140,18 @@ def search_flights(origin: str, destination: str, date: str) -> str:
 
     if not results:
         return (
-            f"No Horizon Travel flights found from {origin_code} to {dest_code} "
-            f"on {search_date}.\n"
-            f"💡 Tip: Try the day before or after, or check alternative routes."
+            f"No Horizon Travel flights found from {origin_code} to "
+            f"{dest_code} on {search_date}.\n"
+            f"💡 Tip: Try the day before or after, or check "
+            f"alternative routes."
         )
 
     # Format results
     status_icons = {"SCHEDULED": "🟢", "DELAYED": "🟡", "CANCELLED": "🔴"}
-    header = f"✈️  Horizon Travel — {origin_code} → {dest_code} | {search_date}\n{'─' * 55}"
+    header = (
+        f"✈️  Horizon Travel — {origin_code} → {dest_code} | "
+        f"{search_date}\n{'─' * 55}"
+    )
     rows = []
     for fl in results:
         icon = status_icons.get(fl.get("status", ""), "⚪")
@@ -153,20 +176,33 @@ def search_flights(origin: str, destination: str, date: str) -> str:
 # TOOL 3: Custom — search_hotels
 # ===========================================================================
 
-# TODO (Step 3): Add the @tool decorator
+@tool
 def search_hotels(city: str, max_price_usd: float = 9999.0) -> str:
-    
+
     """
-    TODO (Step 3): Add a docstring describing when to use this tool, the expected parameters, and the return format
+    Search for hotels in a specific city within a certain price range.
+
+    Parameters:
+    - city (str): The name of the city to search for hotels.
+    - max_price_usd (float): The maximum price per night in USD.
+    This is an optional parameter.
+
+    Returns:
+    - str: A formatted string with the hotel information or an error message.
     """
-    
-    logger.info("search_hotels called: city=%s, max=$%.0f", city, max_price_usd)
+
+    logger.info(
+        "search_hotels called: city=%s, max=$%.0f", city, max_price_usd
+    )
 
     try:
         with open(HOTELS_FILE, encoding="utf-8") as f:
             hotels = json.load(f)
     except FileNotFoundError:
-        return "⚠️  Hotel database is temporarily unavailable. Please contact support."
+        return (
+            "⚠️  Hotel database is temporarily unavailable. "
+            "Please contact support."
+        )
     except json.JSONDecodeError as e:
         logger.error("Failed to parse hotels.json: %s", e)
         return "⚠️  Error reading hotel data. Please try again."
@@ -182,14 +218,20 @@ def search_hotels(city: str, max_price_usd: float = 9999.0) -> str:
     ]
 
     if not matching:
-        budget_msg = f" under ${max_price_usd:.0f}/night" if max_price_usd < 9999 else ""
+        budget_msg = (
+            f" under ${max_price_usd:.0f}/night"
+            if max_price_usd < 9999 else ""
+        )
         return (
             f"No available hotels found in {city_normalised}{budget_msg}.\n"
             f"💡 Tip: Try a higher budget or check nearby cities."
         )
 
     star_icons = {5: "⭐⭐⭐⭐⭐", 4: "⭐⭐⭐⭐", 3: "⭐⭐⭐", 2: "⭐⭐", 1: "⭐"}
-    budget_label = f" (budget: under ${max_price_usd:.0f})" if max_price_usd < 9999 else ""
+    budget_label = (
+        f" (budget: under ${max_price_usd:.0f})"
+        if max_price_usd < 9999 else ""
+    )
     lines = [f"🏨  Hotels in {city_normalised}{budget_label}\n{'─' * 55}"]
 
     for h in sorted(matching, key=lambda x: x["price_per_night_usd"]):
@@ -214,11 +256,23 @@ def search_hotels(city: str, max_price_usd: float = 9999.0) -> str:
 # TOOL 4: Custom — get_exchange_rate
 # ===========================================================================
 
-# TODO (Step 4): Add the @tool decorator
-def get_exchange_rate(from_currency: str, to_currency: str, amount: float = 1.0) -> str:
-    
+@tool
+def get_exchange_rate(
+    from_currency: str, to_currency: str, amount: float = 1.0
+) -> str:
+
     """
-    TODO (Step 4): Add a docstring describing when to use this tool, the expected parameters, and the return format
+    Get the exchange rate between two currencies.
+    The currency codes should be in ISO 4217 format (e.g., USD, EUR, GBP).
+
+    Parameters:
+    - from_currency (str): The currency code to convert from.
+    - to_currency (str): The currency code to convert to.
+    - amount (float): The amount to convert (default is 1.0).
+
+    Returns:
+    - str: A formatted string with the exchange rate information
+    or an error message.
     """
 
     logger.info(
@@ -243,15 +297,24 @@ def get_exchange_rate(from_currency: str, to_currency: str, amount: float = 1.0)
     to_code = to_currency.strip().upper()
 
     if from_code not in rates:
-        return f"⚠️  Currency '{from_code}' is not supported. Supported: {', '.join(sorted(rates.keys()))}"
+        supported = ', '.join(sorted(rates.keys()))
+        return (
+            f"⚠️  Currency '{from_code}' is not supported. "
+            f"Supported: {supported}"
+        )
     if to_code not in rates:
-        return f"⚠️  Currency '{to_code}' is not supported. Supported: {', '.join(sorted(rates.keys()))}"
+        supported = ', '.join(sorted(rates.keys()))
+        return (
+            f"⚠️  Currency '{to_code}' is not supported. "
+            f"Supported: {supported}"
+        )
 
     # Convert via USD as pivot:
     # amount_from_currency → USD → to_currency
     # 1 from_currency = (1 / rate_to_usd[from]) USD
     # 1 USD = rate_to_usd[to] to_currency
-    from_rate = rates[from_code]   # to_currency units per 1 USD (if from==USD this is 1)
+    # to_currency units per 1 USD (if from==USD this is 1)
+    from_rate = rates[from_code]
     to_rate = rates[to_code]       # to_currency units per 1 USD
 
     # Compute cross-rate: 1 from_currency = ? to_currency
@@ -293,9 +356,20 @@ async def invoke(payload, context=None):
     logger.info("User: %s", user_message[:100])
 
     # TODO (Step 5): Create an Agent with all four tools:
+    agent = Agent(
+        model=model,
+        system_prompt=SYSTEM_PROMPT,
+        tools=[
+            current_time,
+            search_flights,
+            search_hotels,
+            get_exchange_rate
+        ]
+    )
 
     # TODO (Step 5): Invoke the agent and return the response dict
-    pass
+    response = agent(user_message)
+    return response
 
 
 if __name__ == "__main__":
