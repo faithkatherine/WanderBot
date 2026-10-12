@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.git/
+.env
+*.zip
+.bedrock_agentcore.yaml
