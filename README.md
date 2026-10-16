@@ -6,6 +6,87 @@ This guide covers everything you need to build, test, and deploy AI agents using
 
 ## Quick Start (5 Minutes to Deployment)
 
+Great question! Yes, for future exercises you should start with the
+AgentCore CLI (agentcore create) from the beginning. Here's the
+recommended workflow:
+
+Creating New Exercises/Projects
+
+1. Start with agentcore create
+
+agentcore create
+
+This will guide you through an interactive setup, or you can use
+non-interactive flags:
+
+agentcore create \
+ --name "MyAgent" \
+ --project-name "myproject" \
+ --build Container \
+ --language Python \
+ --framework Strands \
+ --model-provider Bedrock \
+ --memory none \
+ --protocol HTTP
+
+2. Project Structure You'll Get
+
+myproject/
+├── app/
+│ └── MyAgent/
+│ ├── main.py # Your agent code goes here
+│ ├── pyproject.toml # Dependencies
+│ ├── Dockerfile # Auto-generated
+│ └── ...
+├── agentcore/
+│ ├── agentcore.json # Project configuration
+│ ├── cdk/ # Infrastructure as code
+│ └── .cli/ # CLI metadata and logs
+└── README.md
+
+3. Development Workflow
+
+# Navigate to your project
+
+cd myproject
+
+# Edit your agent code in app/MyAgent/main.py
+
+# Add dependencies to app/MyAgent/pyproject.toml
+
+# Test locally
+
+agentcore dev "your test prompt"
+
+# Deploy to AWS
+
+source /path/to/.env # Load AWS credentials
+agentcore deploy -y
+
+Key Differences from Old Toolkit
+┌─────────────────────────────┬───────────────────────────┐
+│ Old (Deprecated) │ New (AgentCore CLI) │
+├─────────────────────────────┼───────────────────────────┤
+│ bedrock-agentcore configure │ agentcore create │
+├─────────────────────────────┼───────────────────────────┤
+│ .bedrock_agentcore.yaml │ agentcore/agentcore.json │
+├─────────────────────────────┼───────────────────────────┤
+│ requirements.txt │ pyproject.toml + uv │
+├─────────────────────────────┼───────────────────────────┤
+│ Python CLI │ Node.js CLI │
+├─────────────────────────────┼───────────────────────────┤
+│ Manual Dockerfile │ Auto-generated Dockerfile │
+└─────────────────────────────┴───────────────────────────┘
+Pro Tips
+
+1. Always start fresh - Don't copy old .bedrock_agentcore.yaml files
+2. Use the interactive mode first to learn the options
+3. Check the generated code in app/YourAgent/main.py for examples
+4. Keep your .env file for AWS credentials and reuse it
+
+So yes - going forward, always start with agentcore create for new
+exercises! 🚀
+
 ```bash
 # 1. Setup (one time)
 python -m venv .venv && source .venv/bin/activate
@@ -20,6 +101,10 @@ aws ecr create-repository --repository-name wanderbot --region us-east-1
 #    execution_role_auto_create: true
 #    ecr_repository: <URI from step 2>
 
+agentcore configure -e starter.py -n WanderBot -dt container \
+  -rf requirements.txt --disable-memory \
+  -er $ER -ecr $ECR_URI --non-interactive
+
 # 4. Deploy!
 agentcore deploy --local-build --auto-update-on-conflict
 
@@ -28,6 +113,7 @@ agentcore invoke '{"prompt": "Hello!"}'
 ```
 
 **Key Success Factors:**
+
 - ✅ Use `--local-build` (CodeBuild restricted in AWS Academy)
 - ✅ Enable `execution_role_auto_create: true` (creates correct trust policy)
 - ✅ Agent name must be lowercase (Docker requirement)
@@ -36,6 +122,7 @@ agentcore invoke '{"prompt": "Hello!"}'
 ---
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [AWS Credentials Setup](#aws-credentials-setup)
 3. [Project Structure](#project-structure)
@@ -50,12 +137,14 @@ agentcore invoke '{"prompt": "Hello!"}'
 ## Prerequisites
 
 ### Required Software
+
 - **Python 3.14+** - Agent runtime
 - **Docker Desktop** - For local builds and containerization
 - **uv** - Fast Python package manager
 - **Node.js & npm** (optional) - For new AgentCore CLI
 
 ### Required Python Packages
+
 ```bash
 pip install \
   strands-agents \
@@ -65,6 +154,7 @@ pip install \
 ```
 
 ### Install uv
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -76,7 +166,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 See [CREDENTIALS-SETUP.md](./CREDENTIALS-SETUP.md) for detailed AWS credentials configuration.
 
 ### Quick Setup
+
 1. Edit `.env` file with your AWS credentials:
+
 ```bash
 export AWS_ACCESS_KEY_ID="your-key"
 export AWS_SECRET_ACCESS_KEY="your-secret"
@@ -85,6 +177,7 @@ export AWS_DEFAULT_REGION="us-east-1"
 ```
 
 2. Load credentials:
+
 ```bash
 source load-aws-env.sh
 # or use the alias:
@@ -116,7 +209,7 @@ default_agent: your-agent-name
 
 agents:
   your-agent-name:
-    name: your-agent-name  # MUST be lowercase for Docker
+    name: your-agent-name # MUST be lowercase for Docker
     language: python
     entrypoint: starter.py
     deployment_type: container
@@ -124,7 +217,7 @@ agents:
 
     aws:
       region: us-east-1
-      account: null  # Auto-filled from credentials
+      account: null # Auto-filled from credentials
       execution_role: arn:aws:iam::ACCOUNT_ID:role/YourExecutionRole
       ecr_repository: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/your-repo
 
@@ -133,6 +226,7 @@ agents:
 ```
 
 ### Key Requirements
+
 1. **Agent name MUST be lowercase** - Docker tags don't accept uppercase
 2. **execution_role** - IAM role ARN for agent execution
 3. **ecr_repository** - Full ECR repository URI for container storage
@@ -169,6 +263,7 @@ CMD ["python", "-m", "uvicorn", "starter:app", "--host", "0.0.0.0", "--port", "8
 ```
 
 ### Dockerfile Best Practices
+
 - Use slim base images to reduce size
 - Install dependencies before copying code (better layer caching)
 - Set `PYTHONUNBUFFERED=1` for real-time logs
@@ -179,6 +274,7 @@ CMD ["python", "-m", "uvicorn", "starter:app", "--host", "0.0.0.0", "--port", "8
 ## Local Testing
 
 ### 1. Test with Python directly
+
 ```bash
 cd YourAgent
 source .venv/bin/activate
@@ -186,6 +282,7 @@ python starter.py
 ```
 
 ### 2. Test with AgentCore Dev Server
+
 ```bash
 # Terminal 1: Start dev server
 agentcore dev
@@ -195,6 +292,7 @@ agentcore invoke --dev "Your test message here"
 ```
 
 The dev server:
+
 - ✅ Builds container locally
 - ✅ Mocks AWS runtime
 - ✅ No AWS credentials needed
@@ -208,7 +306,9 @@ The dev server:
 ### Prerequisites
 
 #### 1. Create ECR Repository (Required)
+
 **This must be done before deployment:**
+
 ```bash
 aws ecr create-repository \
   --repository-name your-agent-name \
@@ -222,14 +322,16 @@ Note the `repositoryUri` from the output - add this to your YAML config.
 **The easiest and most reliable method is to let AgentCore auto-create the role.**
 
 In your `.bedrock_agentcore.yaml`:
+
 ```yaml
 aws:
-  execution_role: null  # Set to null
-  execution_role_auto_create: true  # Enable auto-create
+  execution_role: null # Set to null
+  execution_role_auto_create: true # Enable auto-create
   ecr_repository: YOUR_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/your-repo
 ```
 
 The auto-created role will have the **correct trust policy** with:
+
 - ✅ Service principal: `bedrock-agentcore.amazonaws.com`
 - ✅ Proper conditions for AgentCore Runtime
 - ✅ Required permissions
@@ -278,6 +380,7 @@ aws iam attach-role-policy \
 ```
 
 **CRITICAL:** The service principal MUST be exactly `bedrock-agentcore.amazonaws.com`.
+
 - ❌ NOT `bedrock.amazonaws.com`
 - ❌ NOT `bedrock-runtime.amazonaws.com`
 - ❌ NOT account root principal
@@ -285,6 +388,7 @@ aws iam attach-role-policy \
 ### Deployment Methods
 
 #### Method 1: Local Build + Deploy (Recommended)
+
 ```bash
 # 1. Activate environment and load credentials
 source .venv/bin/activate
@@ -295,6 +399,7 @@ agentcore deploy --local-build --auto-update-on-conflict
 ```
 
 **This method:**
+
 - ✅ Builds Docker container on your Mac
 - ✅ Pushes to your ECR repository
 - ✅ Deploys to AgentCore Runtime
@@ -302,6 +407,7 @@ agentcore deploy --local-build --auto-update-on-conflict
 - ✅ Auto-creates IAM role with correct trust policy
 
 **Use when:**
+
 - Working with AWS Academy (CodeBuild is restricted)
 - You have Docker Desktop installed
 - You want full control over the build process
@@ -317,11 +423,13 @@ agentcore deploy --auto-update-on-conflict
 ```
 
 **Use when:**
+
 - Full AWS account (not AWS Academy)
 - Building for production
 - Don't want to use local Docker
 
 ### Deployment Process
+
 1. **Build** - Create Docker container locally
 2. **Push** - Upload image to ECR repository
 3. **Role Setup** - Auto-create or use existing IAM role
@@ -331,11 +439,13 @@ agentcore deploy --auto-update-on-conflict
 ### Post-Deployment - Testing Your Agent
 
 #### Check Deployment Status
+
 ```bash
 agentcore status
 ```
 
 #### Invoke Your Agent
+
 ```bash
 # Simple test
 agentcore invoke '{"prompt": "Hello!"}'
@@ -348,6 +458,7 @@ agentcore invoke '{"prompt": "What is 50 times 2?"}'
 ```
 
 #### View Logs
+
 ```bash
 # Tail live logs
 aws logs tail /aws/bedrock-agentcore/runtimes/YOUR-AGENT-ID-DEFAULT \
@@ -361,6 +472,7 @@ aws logs tail /aws/bedrock-agentcore/runtimes/YOUR-AGENT-ID-DEFAULT \
 ```
 
 #### Get Agent Details
+
 ```bash
 # List all agents
 aws bedrock-agent list-agents --region us-east-1
@@ -376,16 +488,18 @@ aws bedrock-agent get-agent --agent-id YOUR-AGENT-ID --region us-east-1
 ### Common Issues
 
 #### 1. "repository name must be lowercase"
+
 **Problem:** Agent name in YAML has uppercase letters
 **Solution:** Change `name:` field to all lowercase
 
 ```yaml
 agents:
   myagent:
-    name: myagent  # NOT MyAgent
+    name: myagent # NOT MyAgent
 ```
 
 #### 2. "Missing 'aws.execution_role'" or "Role validation failed"
+
 **Problem:** No IAM role configured or wrong trust policy
 **Solution:** Use auto-create (RECOMMENDED):
 
@@ -401,28 +515,34 @@ Then deploy. The toolkit will create a role with the correct trust policy.
 **If auto-create fails:** Create role manually with service principal `bedrock-agentcore.amazonaws.com` (see Deployment Prerequisites)
 
 #### 3. "ECR repository not configured"
+
 **Problem:** No ECR repository created
 **Solution:** Create ECR repo and add to YAML config
 
 #### 4. "CodeBuild failed: STOPPED during PROVISIONING"
+
 **Problem:** AWS Academy restricts CodeBuild
 **Solution:** Use `--local-build` flag instead
 
 #### 5. "Dockerfile not found"
+
 **Problem:** Missing Dockerfile for local builds
 **Solution:** Create Dockerfile (see Dockerfile Requirements)
 
 #### 6. Session Token Expired
+
 **Problem:** AWS credentials expired (AWS Academy)
 **Solution:** Get fresh credentials, update `.env`, run `aws-env`
 
 #### 7. Docker not running
+
 **Problem:** Docker daemon not started
 **Solution:** Start Docker Desktop
 
 ### Checking Logs
 
 #### CodeBuild Logs
+
 ```bash
 # List recent builds
 aws codebuild list-builds-for-project \
@@ -433,6 +553,7 @@ aws codebuild batch-get-builds --ids BUILD_ID
 ```
 
 #### CloudWatch Logs
+
 ```bash
 # Tail build logs
 aws logs tail /aws/codebuild/bedrock-agentcore-your-agent-builder \
@@ -448,6 +569,7 @@ aws logs tail /aws/bedrock/agentcore/your-agent \
 ## Complete Workflow Example
 
 ### First Time Setup
+
 ```bash
 # 1. Navigate to exercise folder
 cd WanderBot
@@ -473,6 +595,7 @@ aws ecr create-repository --repository-name wanderbot --region us-east-1
 ```
 
 ### Development Cycle
+
 ```bash
 # 1. Activate environment and load credentials
 source .venv/bin/activate
@@ -494,6 +617,7 @@ agentcore invoke "test message"
 ```
 
 ### When Credentials Expire
+
 ```bash
 # 1. Get new credentials from AWS Academy
 # 2. Update .env file in parent directory
@@ -509,6 +633,7 @@ aws-env
 ### AWS Academy Specific Considerations
 
 **Works with AWS Academy:**
+
 - ✅ Local build deployment (`--local-build`)
 - ✅ Auto-created IAM roles (`execution_role_auto_create: true`)
 - ✅ ECR repositories
@@ -516,24 +641,29 @@ aws-env
 - ✅ Bedrock model access (Nova Lite)
 
 **Restricted in AWS Academy:**
+
 - ❌ CodeBuild (use `--local-build` instead)
 - ❌ Updating IAM trust policies (use auto-create or create new roles)
 - ❌ Some IAM administrative actions
 
 **Best Practice for AWS Academy:**
 Always use:
+
 ```bash
 agentcore deploy --local-build --auto-update-on-conflict
 ```
 
 With YAML config:
+
 ```yaml
 execution_role: null
 execution_role_auto_create: true
 ```
 
 ### AWS Resources (Created Once)
+
 These persist across sessions:
+
 - ✅ IAM Execution Role
 - ✅ ECR Repository
 - ✅ S3 Buckets (auto-created)
@@ -542,7 +672,9 @@ These persist across sessions:
 **Reusable for future exercises in the same AWS account!**
 
 ### AWS Resources (Session-Based)
+
 These expire and need refresh:
+
 - ❌ AWS Access Key
 - ❌ AWS Secret Key
 - ❌ AWS Session Token (AWS Academy)
@@ -550,12 +682,15 @@ These expire and need refresh:
 **Update in `.env` when expired**
 
 ### Docker Image Tags
+
 - Must be **lowercase only**
 - Format: `bedrock_agentcore-{agent-name}:{timestamp}`
 - Each deployment creates a new immutable tag
 
 ### Model IDs
+
 For Amazon Nova models, use **inference profiles**:
+
 ```python
 MODEL_ID = "us.amazon.nova-lite-v1:0"  # Correct
 # NOT: "amazon.nova-lite-v1:0"
@@ -606,4 +741,4 @@ For AgentCore issues, see the [AWS Support](https://aws.amazon.com/support/).
 
 ---
 
-*Last Updated: 2026-10-11*
+_Last Updated: 2026-10-11_
