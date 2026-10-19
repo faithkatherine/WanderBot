@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "wanderbotidentity": {
+            "runtimeId": "WanderBotIdentity_wanderbotidentity-aqBCmC2WxJ",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:032461747919:runtime/WanderBotIdentity_wanderbotidentity-aqBCmC2WxJ",
+            "roleArn": "arn:aws:iam::032461747919:role/AgentCore-WanderBotIdenti-ApplicationAgentWanderbot-phoDWbZIk7db"
+          }
+        },
+        "stackName": "AgentCore-WanderBotIdentity-default",
+        "deployHash": "f565540ec8b52cd9"
+      }
+    }
+  }
+}
