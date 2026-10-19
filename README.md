@@ -50,6 +50,12 @@ myproject/
 
 cd myproject
 
+- Add to pyproject.toml dependencies array
+- Run uv lock to update lock file
+- Run uv sync to install locally
+- Test locally before deploying
+- Update Dockerfile if the dependency needs system packages
+
 # Edit your agent code in app/MyAgent/main.py
 
 # Add dependencies to app/MyAgent/pyproject.toml

@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "WanderBotWebSearch": {
+            "runtimeId": "WanderBotWebSearch_WanderBotWebSearch-YUWVPR2luR",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:032461747919:runtime/WanderBotWebSearch_WanderBotWebSearch-YUWVPR2luR",
+            "roleArn": "arn:aws:iam::032461747919:role/AgentCore-WanderBotWebSea-ApplicationAgentWanderBot-9AQofEs0AP8P"
+          }
+        },
+        "stackName": "AgentCore-WanderBotWebSearch-default",
+        "deployHash": "03a89814551e2cbc"
+      }
+    }
+  }
+}
