@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "WanderBotMonitoring": {
+            "runtimeId": "WanderBotMonitoring_WanderBotMonitoring-5srlOCGsgc",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:032461747919:runtime/WanderBotMonitoring_WanderBotMonitoring-5srlOCGsgc",
+            "roleArn": "arn:aws:iam::032461747919:role/AgentCore-WanderBotMonito-ApplicationAgentWanderBot-4uim3H9tEdOp"
+          }
+        },
+        "stackName": "AgentCore-WanderBotMonitoring-default",
+        "deployHash": "eea978a197dfa5f3"
+      }
+    }
+  }
+}
