@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "WanderBotLongTermMemory": {
+            "runtimeId": "WanderBotLongTermMemory_WanderBotLongTermMemory-Zf92qrG9dN",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:032461747919:runtime/WanderBotLongTermMemory_WanderBotLongTermMemory-Zf92qrG9dN",
+            "roleArn": "arn:aws:iam::032461747919:role/AgentCore-WanderBotLongTe-ApplicationAgentWanderBot-Xq3wtePorW37"
+          }
+        },
+        "stackName": "AgentCore-WanderBotLongTermMemory-default",
+        "deployHash": "f437b792c79166b3"
+      }
+    }
+  }
+}

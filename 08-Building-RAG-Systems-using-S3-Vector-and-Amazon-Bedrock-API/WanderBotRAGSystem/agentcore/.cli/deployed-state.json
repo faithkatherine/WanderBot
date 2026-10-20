@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "WanderBotRAGSystem": {
+            "runtimeId": "WanderBotRAGSystem_WanderBotRAGSystem-BgnqkU21dB",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:032461747919:runtime/WanderBotRAGSystem_WanderBotRAGSystem-BgnqkU21dB",
+            "roleArn": "arn:aws:iam::032461747919:role/AgentCore-WanderBotRAGSys-ApplicationAgentWanderBot-kUbhAACo7kc8"
+          }
+        },
+        "stackName": "AgentCore-WanderBotRAGSystem-default",
+        "deployHash": "82347dd9cf70420f"
+      }
+    }
+  }
+}
